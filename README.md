@@ -2,7 +2,7 @@
 
 # GovConnect — Team Task Breakdown
 
-## Person A — Frontend
+## Shivang — Frontend
 
 **Language:** React + TypeScript
 
@@ -13,7 +13,7 @@
 
 ---
 
-## Person B — Conversational AI
+## Sanjit — Conversational AI
 
 **Language:** Python
 
@@ -23,7 +23,7 @@
 
 ---
 
-## Person C — Document AI
+## Sangharsh — Document AI
 
 **Language:** Python
 
@@ -33,7 +33,7 @@
 
 ---
 
-## Person D — Backend & Data
+## Vikat/Sampada — Backend & Data
 
 **Language:** Python
 
@@ -43,7 +43,7 @@
 
 ---
 
-## Person E — Automation & Demo
+## Sanjit/Sangahrsh/Shivang — Automation & Demo
 
 **Language:** Python
 
