@@ -53,7 +53,7 @@
 
 ---
 
-# Code Style Guide — Everyone Follow This
+# Code Style Guide — Everyone Follow Thiss
 
 Following one shared style means anyone on the team can read anyone else's code without getting confused. Copy the patterns below.
 
