@@ -33,7 +33,7 @@
 
 ---
 
-## Vikat/Sampada — Backend & Data
+## Vikat(Sumedha)/Sampada — Backend & Data
 
 **Language:** Python
 
