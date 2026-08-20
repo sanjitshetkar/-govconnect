@@ -1,0 +1,6 @@
+{
+  "name": "JanSeva.gov.in - Digital India Citizen Services Portal",
+  "description": "Official Government of India portal for automated statutory scheme applications, DigiLocker evidentiary vault, and AI citizen assistance under Digital India.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
