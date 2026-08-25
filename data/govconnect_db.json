@@ -1,0 +1,31 @@
+{
+  "users": [
+    {
+      "user_id": "usr-default-citizen",
+      "name": "GovConnect User",
+      "date_of_birth": "",
+      "mobile": "+91 00000 00000",
+      "email": "citizen@govconnect.in",
+      "address": "Please set up your profile",
+      "district": "Your District",
+      "state": "Goa",
+      "pincode": "000000",
+      "aadhaar_masked": "•••• •••• ****",
+      "pan_number": "",
+      "occupation": "Citizen",
+      "annual_income": "₹ 0",
+      "language_preference": "en",
+      "voice_assistance_enabled": true,
+      "notifications_enabled": true
+    }
+  ],
+  "applications": {
+    "usr-default-citizen": []
+  },
+  "documents": {
+    "usr-default-citizen": []
+  },
+  "notifications": {
+    "usr-default-citizen": []
+  }
+}
