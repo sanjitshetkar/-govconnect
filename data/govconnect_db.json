@@ -17,15 +17,319 @@
       "language_preference": "en",
       "voice_assistance_enabled": true,
       "notifications_enabled": true
+    },
+    {
+      "user_id": "usr-1787908651043",
+      "name": "mukesh",
+      "date_of_birth": "16 12 16",
+      "mobile": "+91 51115456415",
+      "email": "mukesh@gmail.com",
+      "address": "mapusa",
+      "district": "north",
+      "state": "Goa",
+      "pincode": "403507",
+      "aadhaar_masked": "•••• •••• ****",
+      "pan_number": "ABCDE1234F",
+      "occupation": "Retired",
+      "annual_income": "₹ 0",
+      "language_preference": "mr",
+      "voice_assistance_enabled": true,
+      "notifications_enabled": true
+    },
+    {
+      "user_id": "usr-1787909697299",
+      "name": "sanjit shetkar",
+      "date_of_birth": "22 sep 2006",
+      "mobile": "+91 9845632139",
+      "email": "sanjit.shetkar@example.com",
+      "address": "rjfioeferf",
+      "district": "South Goa",
+      "state": "Goa",
+      "pincode": "444555",
+      "aadhaar_masked": "•••• •••• ****",
+      "pan_number": "ABCDE1234F",
+      "occupation": "Undergraduate Student",
+      "annual_income": "₹ 0",
+      "language_preference": "en",
+      "voice_assistance_enabled": true,
+      "notifications_enabled": true
+    },
+    {
+      "user_id": "usr-1787912156844",
+      "name": "Integration Tester",
+      "date_of_birth": "14 May 2003",
+      "mobile": "+91 99999 88888",
+      "email": "tester-1787912156775@example.com",
+      "address": "Address Line 1",
+      "district": "South Goa",
+      "state": "Goa",
+      "pincode": "403601",
+      "aadhaar_masked": "•••• •••• 9999",
+      "pan_number": "ABCDE1234F",
+      "occupation": "Student / Citizen",
+      "annual_income": "₹ 2,00,000",
+      "language_preference": "en",
+      "voice_assistance_enabled": true,
+      "notifications_enabled": true
+    },
+    {
+      "user_id": "usr-1787912194354",
+      "name": "Sanjit Shetkar",
+      "date_of_birth": "14 May 2003",
+      "mobile": "+91 98000 00000",
+      "email": "sanjit@gmail.com",
+      "address": "Address Line 1",
+      "district": "South Goa",
+      "state": "Goa",
+      "pincode": "403601",
+      "aadhaar_masked": "•••• •••• 9999",
+      "pan_number": "ABCDE1234F",
+      "occupation": "Student / Citizen",
+      "annual_income": "₹ 2,00,000",
+      "language_preference": "en",
+      "voice_assistance_enabled": true,
+      "notifications_enabled": true
+    },
+    {
+      "user_id": "usr-1787912325777",
+      "name": "Sangarsh",
+      "date_of_birth": "14 May 2003",
+      "mobile": "+91 98000 00000",
+      "email": "sangarsh@gmail.com",
+      "address": "Address Line 1",
+      "district": "South Goa",
+      "state": "Goa",
+      "pincode": "403601",
+      "aadhaar_masked": "•••• •••• 9999",
+      "pan_number": "ABCDE1234F",
+      "occupation": "Student / Citizen",
+      "annual_income": "₹ 2,00,000",
+      "language_preference": "en",
+      "voice_assistance_enabled": true,
+      "notifications_enabled": true
     }
   ],
   "applications": {
-    "usr-default-citizen": []
+    "usr-default-citizen": [],
+    "usr-1787908651043": [
+      {
+        "application_id": "GC-2026-34159",
+        "service_id": "srv-new-pan",
+        "service_name": "Apply for New PAN Card (Instant e-PAN)",
+        "category": "Identity & Cards",
+        "status": "in_review",
+        "progress_step": 4,
+        "total_steps": 6,
+        "current_step_name": "Transmitted & Queued for Scrutiny Committee",
+        "last_updated": "Just now",
+        "submitted_date": "28 Aug 2026",
+        "department": "Income Tax Department (CBDT) / NSDL",
+        "next_action": "Under initial document scrutiny. You will receive notification on approval.",
+        "reference_number": "GOI-IDE-2026-11853",
+        "form_data": {
+          "applicant_name": "mukesh",
+          "date_of_birth": "16 12 16",
+          "gender": "Male",
+          "mobile": "+91 51115456415",
+          "email": "mukesh@gmail.com",
+          "aadhaar_number": "•••• •••• ****",
+          "pan_number": "ABCDE1234F",
+          "address": "mapusa",
+          "district": "north",
+          "state": "Goa",
+          "pincode": "403507",
+          "institution_name": "Goa College of Engineering",
+          "course_name": "B.Tech Computer Engineering (3rd Year)",
+          "enrollment_number": "GEC-2023-CS-042",
+          "qualifying_percentage": "91.2%",
+          "annual_family_income": "₹ 0",
+          "income_certificate_no": "INC/SLCT/2025/0942",
+          "bank_account_no": "•••• •••• 5519",
+          "bank_name": "HDFC Bank, Margao Branch",
+          "ifsc_code": "HDFC0000214",
+          "declaration_accepted": true,
+          "digital_signature": "mukesh (Aadhaar e-Signed)"
+        },
+        "attached_documents": [
+          "doc-1787908719408"
+        ],
+        "timeline": [
+          {
+            "step_index": 0,
+            "title": "Application Started",
+            "description": "Citizen initiated pre-fill through GovConnect AI.",
+            "status": "completed",
+            "timestamp": "Just now"
+          },
+          {
+            "step_index": 1,
+            "title": "Documents Uploaded & Linked",
+            "description": "1 verified certificates attached from vault.",
+            "status": "completed",
+            "timestamp": "Just now"
+          },
+          {
+            "step_index": 2,
+            "title": "AI Verification & Cryptographic Seal",
+            "description": "Zero discrepancy found with Aadhaar / State Domicile.",
+            "status": "completed",
+            "timestamp": "Just now"
+          },
+          {
+            "step_index": 3,
+            "title": "Application Submitted",
+            "description": "Aadhaar e-Signed and transmitted directly to state portal gateway.",
+            "status": "completed",
+            "timestamp": "Just now"
+          },
+          {
+            "step_index": 4,
+            "title": "Under Review by Scrutiny Cell",
+            "description": "Assigned to evaluation desk. Standard turnaround: 5 working days.",
+            "status": "current",
+            "timestamp": "Just now",
+            "department": "Income Tax Department (CBDT) / NSDL"
+          },
+          {
+            "step_index": 5,
+            "title": "Approved & Sanction Order Issued",
+            "description": "Digital sanction order with unique grant voucher number.",
+            "status": "upcoming"
+          },
+          {
+            "step_index": 6,
+            "title": "Disbursement Completed",
+            "description": "Direct Benefit Transfer into registered bank account.",
+            "status": "upcoming"
+          }
+        ]
+      }
+    ],
+    "usr-1787909697299": [],
+    "usr-1787912156844": [],
+    "usr-1787912194354": [],
+    "usr-1787912325777": []
   },
   "documents": {
-    "usr-default-citizen": []
+    "usr-default-citizen": [],
+    "usr-1787908651043": [
+      {
+        "document_id": "doc-1787908719408",
+        "document_name": "National ID",
+        "category": "identity",
+        "status": "needs_attention",
+        "file_type": "Scanned Image",
+        "file_size": "1.6 MB",
+        "upload_date": "28 Aug 2026",
+        "issuer": "Government of India",
+        "is_digilocker_verified": false,
+        "extracted_fields": {},
+        "verification_checks": [
+          {
+            "check_name": "OCR confidence: 55% — High quality",
+            "passed": false
+          },
+          {
+            "check_name": "No tampering detected",
+            "passed": true
+          }
+        ],
+        "verificationStatus": "warning"
+      }
+    ],
+    "usr-1787909697299": [
+      {
+        "document_id": "doc-1787910115445",
+        "document_name": "National ID",
+        "category": "identity",
+        "status": "verified",
+        "file_type": "Scanned Image",
+        "file_size": "0.1 MB",
+        "upload_date": "28 Aug 2026",
+        "issuer": "Government of India",
+        "is_digilocker_verified": true,
+        "extracted_fields": {
+          "Date of Birth": "03/01/1995",
+          "Document ID": "5522 6616 4533",
+          "PIN Code": "277506"
+        },
+        "verification_checks": [
+          {
+            "check_name": "Date of birth extracted: 03/01/1995",
+            "passed": true
+          },
+          {
+            "check_name": "OCR confidence: 91% — Medium quality",
+            "passed": true
+          },
+          {
+            "check_name": "No tampering detected",
+            "passed": true
+          }
+        ],
+        "verificationStatus": "verified"
+      }
+    ],
+    "usr-1787912156844": [],
+    "usr-1787912194354": [],
+    "usr-1787912325777": []
   },
   "notifications": {
-    "usr-default-citizen": []
+    "usr-default-citizen": [],
+    "usr-1787908651043": [
+      {
+        "notification_id": "notif-1787908651043",
+        "type": "update",
+        "title": "Welcome to GovConnect, mukesh!",
+        "description": "Your citizen profile and encrypted vault are ready for 1-click scheme filing.",
+        "time_ago": "Just now",
+        "is_read": false,
+        "urgency": "low"
+      }
+    ],
+    "usr-1787909697299": [
+      {
+        "notification_id": "notif-1787909697299",
+        "type": "update",
+        "title": "Welcome to GovConnect, sanjit shetkar!",
+        "description": "Your citizen profile and encrypted vault are ready for 1-click scheme filing.",
+        "time_ago": "Just now",
+        "is_read": false,
+        "urgency": "low"
+      }
+    ],
+    "usr-1787912156844": [
+      {
+        "notification_id": "notif-1787912156844",
+        "type": "update",
+        "title": "Welcome to GovConnect, Integration Tester!",
+        "description": "Your citizen profile and encrypted vault are ready for 1-click scheme filing.",
+        "time_ago": "Just now",
+        "is_read": false,
+        "urgency": "low"
+      }
+    ],
+    "usr-1787912194354": [
+      {
+        "notification_id": "notif-1787912194354",
+        "type": "update",
+        "title": "Welcome to GovConnect, Sanjit Shetkar!",
+        "description": "Your citizen profile and encrypted vault are ready for 1-click scheme filing.",
+        "time_ago": "Just now",
+        "is_read": false,
+        "urgency": "low"
+      }
+    ],
+    "usr-1787912325777": [
+      {
+        "notification_id": "notif-1787912325777",
+        "type": "update",
+        "title": "Welcome to GovConnect, Sangarsh!",
+        "description": "Your citizen profile and encrypted vault are ready for 1-click scheme filing.",
+        "time_ago": "Just now",
+        "is_read": false,
+        "urgency": "low"
+      }
+    ]
   }
 }

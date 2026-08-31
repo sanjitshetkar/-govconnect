@@ -28,7 +28,7 @@ function getAi(): GoogleGenAI {
 }
 
 import { db } from "./server_db";
-import { runLocalOCR } from "./ocr";
+import { runLocalOCR, parseIndianDocument, OCR_CONFIDENCE_THRESHOLD } from "./ocr";
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -38,6 +38,14 @@ app.get("/api/health", (req, res) => {
     registeredUsersCount: db.getUsers().length,
     hasApiKey: !!process.env.GEMINI_API_KEY,
     timestamp: new Date().toISOString(),
+  });
+});
+
+// Expose public Supabase config to the frontend safely
+app.get("/api/config", (req, res) => {
+  res.json({
+    supabaseUrl: process.env.SUPABASE_URL || '',
+    supabaseAnonKey: process.env.SUPABASE_SECRET_KEY || '',
   });
 });
 
@@ -58,6 +66,42 @@ app.post("/api/auth/register", (req, res) => {
     res.status(500).json({ error: err.message || "Failed to register user" });
   }
 });
+
+// Login: verify email + password, return profile on success
+app.post("/api/auth/login", (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, error: "Email is required" });
+    }
+
+    // If password not supplied (e.g. internal profile-lookup call), do email-only lookup
+    if (!password) {
+      const user = db.getUserByEmail(email);
+      if (user) {
+        const { password_hash, ...safeUser } = user as any;
+        return res.json({ success: true, user: safeUser });
+      }
+      return res.json({ success: true, user: null });
+    }
+
+    // Full password verification
+    const result = db.verifyUserPassword(email, password);
+    if (result === 'not_found') {
+      return res.status(404).json({ success: false, error: "No account found with this email. Please sign up first." });
+    }
+    if (result === 'wrong_password') {
+      return res.status(401).json({ success: false, error: "Incorrect password. Please try again." });
+    }
+
+    // Strip password_hash before sending to the client
+    const { password_hash, ...safeUser } = result as any;
+    return res.json({ success: true, user: safeUser });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || "Failed to authenticate" });
+  }
+});
+
 
 app.get("/api/user/profile", (req, res) => {
   const userId = (req.query.userId as string) || "usr-sanjit-2026";
@@ -323,8 +367,14 @@ app.post("/api/documents/parse", async (req, res) => {
 
     // Use plain text directly if it was sent (no image needed)
     if (textContent && !base64Data) {
-      const { parseIndianDocument } = await import("./ocr.js");
       const result = parseIndianDocument(textContent, docTypeHint);
+      if (result.verificationStatus === "failed" || result.confidenceScore < OCR_CONFIDENCE_THRESHOLD) {
+        return res.status(422).json({
+          ...result,
+          verificationStatus: "failed",
+          error: result.summary || `OCR confidence score (${result.confidenceScore}%) is below the required ${OCR_CONFIDENCE_THRESHOLD}% threshold. Document rejected.`,
+        });
+      }
       return res.json(result);
     }
 
@@ -333,10 +383,11 @@ app.post("/api/documents/parse", async (req, res) => {
     const result = await runLocalOCR(base64Data, fileType || "image/jpeg", documentName, docTypeHint);
     console.log(`[OCR] Done — type: ${result.docType}, confidence: ${result.confidenceScore}%, status: ${result.verificationStatus}`);
 
-    if (result.verificationStatus === "failed") {
+    if (result.verificationStatus === "failed" || result.confidenceScore < OCR_CONFIDENCE_THRESHOLD) {
       return res.status(422).json({
         ...result,
-        error: result.summary || "Could not read or verify this document.",
+        verificationStatus: "failed",
+        error: result.summary || `OCR confidence score (${result.confidenceScore}%) is below the required ${OCR_CONFIDENCE_THRESHOLD}% threshold. Document rejected.`,
       });
     }
 
@@ -501,8 +552,8 @@ async function start() {
     res.status(500).json({ error: "Internal Server Error" });
   });
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`JanSeva Portal Server running on port ${PORT}`);
+  app.listen(PORT, () => {
+    console.log(`JanSeva Portal Server running on http://localhost:${PORT} and http://127.0.0.1:${PORT}`);
   });
 }
 

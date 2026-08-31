@@ -280,6 +280,43 @@ class DatabaseManager {
     return this.data.users.find((u) => u.user_id === userId) || null;
   }
 
+  public getUserByEmail(email: string): UserProfile | null {
+    return this.data.users.find((u) => u.email?.toLowerCase() === email?.toLowerCase()) || null;
+  }
+
+  // --- Password Hashing (Node built-in crypto, no extra deps) ---
+  private hashPassword(password: string): string {
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+    return `${salt}:${hash}`;
+  }
+
+  private checkPassword(password: string, stored: string): boolean {
+    try {
+      const [salt, hash] = stored.split(':');
+      if (!salt || !hash) return false;
+      const testHash = crypto.scryptSync(password, salt, 64).toString('hex');
+      return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(testHash, 'hex'));
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Verify email + password for login.
+   * Returns the user profile on success, or an error string on failure.
+   */
+  public verifyUserPassword(email: string, password: string): UserProfile | 'not_found' | 'wrong_password' {
+    const user = this.getUserByEmail(email);
+    if (!user) return 'not_found';
+
+    // Legacy/seed users with no stored password — allow access but encourage password setup
+    const storedHash = (user as any).password_hash as string | undefined;
+    if (!storedHash) return user; // backward-compatible: no password stored
+
+    return this.checkPassword(password, storedHash) ? user : 'wrong_password';
+  }
+
   public createUser(profile: Partial<UserProfile>): UserProfile {
     const userId = profile.user_id || `usr-${Date.now()}`;
     const newUser: UserProfile = {
@@ -300,6 +337,12 @@ class DatabaseManager {
       voice_assistance_enabled: true,
       notifications_enabled: true,
     };
+
+    // Hash the plaintext password if provided, then drop it from the stored profile
+    const rawPassword = (profile as any).password as string | undefined;
+    if (rawPassword && rawPassword.trim()) {
+      (newUser as any).password_hash = this.hashPassword(rawPassword);
+    }
 
     const existingIdx = this.data.users.findIndex(
       (u) => u.user_id === userId || (profile.mobile && u.mobile === profile.mobile)

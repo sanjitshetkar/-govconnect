@@ -199,9 +199,15 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
                 Supports PDF, PNG, JPG (DigiLocker, e-District scans up to 15MB)
               </p>
 
-              <div className="mt-5 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-medium">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Encrypted on client-side with 256-bit AES</span>
+              <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-medium">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>256-bit AES Encryption</span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-bold border border-indigo-200">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Acceptance Threshold: ≥ 80% OCR Confidence</span>
+                </div>
               </div>
             </div>
 
@@ -320,7 +326,7 @@ export const FileUploadModal: React.FC<FileUploadModalProps> = ({
                   : 'text-emerald-800 border-emerald-200'
               }`}>
                 {stage === 'verified'
-                  ? isWarning ? '⚠ Low Confidence' : '✓ 100% Verified'
+                  ? isWarning ? '⚠ Low Confidence' : '✓ Verified (≥ 80% Confidence)'
                   : 'Verifying...'}
               </span>
             </div>

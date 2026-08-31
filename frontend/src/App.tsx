@@ -29,13 +29,14 @@ import {
   markNotificationReadInDb,
   getImpactMetrics,
 } from './services/mockApi';
+import { getSupabaseClient } from './lib/supabaseClient';
 import TopHeaderNavbar from './components/TopHeaderNavbar';
 import MobileNav from './components/MobileNav';
 import FileUploadModal from './components/FileUploadModal';
 import RegisterModal from './components/RegisterModal';
 import ApplicationCard from './components/ApplicationCard';
 import LanguageSelector, { LanguageCode } from './components/LanguageSelector';
-import OnboardingModal from './components/OnboardingModal';
+import AuthPage from './components/AuthPage';
 
 // Views
 import DashboardView from './views/DashboardView';
@@ -52,10 +53,11 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>('en');
 
-  // First-run onboarding: true until we confirm a real user exists in the DB
-  // Starts as false to avoid flash — set to true only after DB confirms no real user
-  const [isFirstRun, setIsFirstRun] = useState<boolean>(false);
-  const [isLoadingCheck, setIsLoadingCheck] = useState<boolean>(true);
+  // --- Auth State ---
+  // null = still checking session; false = not logged in; true = logged in
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
 
   // Multi-user & Database State
   const [existingUsers, setExistingUsers] = useState<UserProfile[]>([INITIAL_USER_PROFILE]);
@@ -76,39 +78,204 @@ export const App: React.FC = () => {
   const [uploadDefaultCategory, setUploadDefaultCategory] = useState<DocumentItem['category']>('identity');
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
-  // Load database on mount — determines first-run from actual DB data
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const users = await getAllUsers();
-        // A "real" user is one that is not the generic placeholder
-        const realUsers = users.filter(
-          (u) => u.user_id !== 'usr-default-citizen' && u.name !== 'GovConnect User'
-        );
+  // ------------------------------------------------------------------
+  // Auth: localStorage session key
+  // ------------------------------------------------------------------
+  const SESSION_KEY = 'govconnect_session'; // { userId: string, email: string }
 
-        if (realUsers.length > 0) {
-          // Real user exists in DB — skip onboarding, load their data
-          setExistingUsers(realUsers);
-          const current = realUsers[0];
-          setUserProfile(current);
-          if (current.language_preference) {
-            setCurrentLanguage(current.language_preference as LanguageCode);
-          }
-          await reloadUserData(current.user_id || 'usr-default-citizen');
-          setIsFirstRun(false);
-        } else {
-          // No real user in DB — show onboarding wizard
-          setIsFirstRun(true);
-        }
-      } catch (err) {
-        console.warn('DB load error, showing onboarding:', err);
-        setIsFirstRun(true);
-      } finally {
-        setIsLoadingCheck(false);
+  const saveLocalSession = (userId: string, email: string) => {
+    try { localStorage.setItem(SESSION_KEY, JSON.stringify({ userId, email })); } catch {}
+  };
+  const clearLocalSession = () => {
+    try { localStorage.removeItem(SESSION_KEY); } catch {}
+  };
+  const getLocalSession = (): { userId: string; email: string } | null => {
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  };
+
+  // ------------------------------------------------------------------
+  // Auth: check session on mount (localStorage-first, Supabase optional)
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    async function initAuth() {
+      // 1. Check localStorage session first (always works, even offline)
+      const localSession = getLocalSession();
+      if (localSession?.userId) {
+        await loadProfileById(localSession.userId);
+        setIsAuthenticated(true);
+
+        // Optionally also restore Supabase session in background (best-effort)
+        try {
+          const supabase = await getSupabaseClient();
+          supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (!session?.user) {
+              // Supabase session expired — only sign out if localStorage also gone
+              if (!getLocalSession()) {
+                setIsAuthenticated(false);
+              }
+            }
+          });
+        } catch { /* Supabase unreachable — that's fine, localStorage handles it */ }
+        return;
       }
+
+      // 2. No localStorage session — show login page
+      setIsAuthenticated(false);
     }
-    loadData();
+    initAuth();
   }, []);
+
+  /** Load profile from our local DB by userId */
+  async function loadProfileById(userId: string) {
+    try {
+      const res = await fetch(`/api/user/profile?userId=${encodeURIComponent(userId)}`);
+      const profile: UserProfile = await res.json();
+      if (profile?.user_id || profile?.name) {
+        setUserProfile(profile);
+        if (profile.language_preference) setCurrentLanguage(profile.language_preference as LanguageCode);
+        const users = await getAllUsers();
+        setExistingUsers(users.filter((u) => u.user_id !== 'usr-default-citizen' && u.name !== 'GovConnect User'));
+        await reloadUserData(profile.user_id || userId);
+      }
+    } catch (err) {
+      console.warn('[Auth] Profile load failed:', err);
+    }
+  }
+
+  /** Load profile from our local DB by email (with optional password verification) */
+  async function loadProfileForEmail(email: string, password?: string): Promise<UserProfile | null> {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+
+      // Handle authentication errors from the server
+      if (!res.ok) {
+        throw new Error(data.error || 'Authentication failed');
+      }
+
+      if (data.user) {
+        const profile: UserProfile = data.user;
+        setUserProfile(profile);
+        if (profile.language_preference) setCurrentLanguage(profile.language_preference as LanguageCode);
+        const users = await getAllUsers();
+        setExistingUsers(users.filter((u) => u.user_id !== 'usr-default-citizen' && u.name !== 'GovConnect User'));
+        await reloadUserData(profile.user_id || 'usr-sanjit-2026');
+        return profile;
+      }
+      return null;
+    } catch (err: any) {
+      // Re-throw auth errors (wrong password, not found) so they surface in the UI
+      if (err.message && (err.message.includes('password') || err.message.includes('account') || err.message.includes('email'))) {
+        throw err;
+      }
+      console.warn('[Auth] Profile fetch failed:', err);
+      return null;
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Auth: handle login / signup — local-first, Supabase optional
+  // ------------------------------------------------------------------
+  const handleAuthSubmit = async (
+    email: string,
+    password: string,
+    mode: 'login' | 'signup',
+    name?: string,
+    mobile?: string
+  ) => {
+    setAuthLoading(true);
+    setAuthError(null);
+
+    try {
+      if (mode === 'signup') {
+        // --- SIGNUP ---
+        // Check if email already exists in local DB
+        const existingCheck = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const existingData = await existingCheck.json();
+        if (existingData.user) {
+          throw new Error('An account with this email already exists. Please sign in instead.');
+        }
+
+        // Create profile in local DB
+        const newProfileData: Partial<UserProfile> = {
+          name: name || email.split('@')[0],
+          email,
+          mobile: mobile || '',
+        };
+        const created = await registerCitizenAccount(newProfileData, password);
+
+        // Persist session in localStorage
+        saveLocalSession(created.user_id!, email);
+
+        // Best-effort Supabase Auth signup (silent fail if unreachable)
+        try {
+          const supabase = await getSupabaseClient();
+          await supabase.auth.signUp({ email, password });
+        } catch { /* Supabase unreachable — local DB is source of truth */ }
+
+        setExistingUsers((prev) => [...prev.filter((u) => u.user_id !== 'usr-default-citizen'), created]);
+        await handleSwitchUser(created);
+        setIsAuthenticated(true);
+
+      } else {
+        // --- LOGIN ---
+        // Look up user in local DB by email + verify password
+        const profile = await loadProfileForEmail(email, password);
+
+        if (!profile) {
+          throw new Error('No account found with this email. Please create an account first.');
+        }
+
+        // Persist session in localStorage
+        saveLocalSession(profile.user_id!, email);
+
+        // Best-effort Supabase Auth login (silent fail if unreachable)
+        try {
+          const supabase = await getSupabaseClient();
+          await supabase.auth.signInWithPassword({ email, password });
+        } catch { /* Supabase unreachable — local DB session is sufficient */ }
+
+        setIsAuthenticated(true);
+      }
+    } catch (err: any) {
+      setAuthError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // ------------------------------------------------------------------
+  // Auth: logout
+  // ------------------------------------------------------------------
+  const handleLogout = async () => {
+    // Always clear local session first
+    clearLocalSession();
+
+    // Best-effort Supabase signOut
+    try {
+      const supabase = await getSupabaseClient();
+      await supabase.auth.signOut();
+    } catch { /* Supabase unreachable — that's fine */ }
+
+    setIsAuthenticated(false);
+    setUserProfile(INITIAL_USER_PROFILE);
+    setApplications([]);
+    setDocuments([]);
+    setNotifications([]);
+    setImpactMetrics(INITIAL_IMPACT_METRICS);
+    setMessages(INITIAL_CHAT_MESSAGES);
+  };
 
   // Reload user data when userProfile changes
   const reloadUserData = async (userId: string) => {
@@ -164,22 +331,6 @@ export const App: React.FC = () => {
     setIsAccountModalOpen(false);
   };
 
-  // Called when the first-run onboarding wizard is completed
-  const handleOnboardingComplete = async (profileData: Partial<UserProfile>) => {
-    try {
-      const created = await registerCitizenAccount(profileData);
-      // Replace the generic placeholder with the real user
-      setExistingUsers([created]);
-      await handleSwitchUser(created);
-      if (profileData.language_preference) {
-        setCurrentLanguage(profileData.language_preference as LanguageCode);
-      }
-    } catch (err) {
-      console.warn('Onboarding registration error:', err);
-    }
-    // No localStorage — DB is the source of truth
-    setIsFirstRun(false);
-  };
 
   const handleUpdateProfile = async (updated: UserProfile) => {
     const saved = await updateCitizenProfile(updated);
@@ -383,8 +534,8 @@ export const App: React.FC = () => {
     setImpactMetrics(metrics);
   };
 
-  // Show a minimal splash while we check the DB for existing users
-  if (isLoadingCheck) {
+  // Show a minimal splash while we check the session
+  if (isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -399,11 +550,19 @@ export const App: React.FC = () => {
     );
   }
 
+  // Show Login / Signup page when not authenticated
+  if (!isAuthenticated) {
+    return (
+      <AuthPage
+        onAuthSuccess={handleAuthSubmit}
+        authError={authError}
+        authLoading={authLoading}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-indigo-600 selection:text-white">
-      {/* First-run onboarding wizard — shown when DB has no real user */}
-      {isFirstRun && <OnboardingModal onComplete={handleOnboardingComplete} />}
-
       {/* Sleek Top Horizontal Navigation Bar */}
       <TopHeaderNavbar
         activeTab={activeTab}
@@ -417,7 +576,9 @@ export const App: React.FC = () => {
         documentsCount={documents.length}
         currentLanguage={currentLanguage}
         onLanguageChange={setCurrentLanguage}
+        onLogout={handleLogout}
       />
+
 
       {/* Main Full-Width Expansive Content Area */}
       <main className="flex-1 w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8">

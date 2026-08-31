@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Globe,
   Check,
+  LogOut,
 } from 'lucide-react';
 import { NavTab, UserProfile, LanguageCode } from '../types';
 import { useTranslation } from '../translations';
@@ -30,6 +31,7 @@ export type TopHeaderNavbarProps = {
   documentsCount: number;
   currentLanguage: LanguageCode;
   onLanguageChange: (lang: LanguageCode) => void;
+  onLogout: () => void;
 };
 
 export const TopHeaderNavbar: React.FC<TopHeaderNavbarProps> = ({
@@ -44,6 +46,7 @@ export const TopHeaderNavbar: React.FC<TopHeaderNavbarProps> = ({
   documentsCount,
   currentLanguage,
   onLanguageChange,
+  onLogout,
 }) => {
   const { t } = useTranslation(currentLanguage);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -304,6 +307,20 @@ export const TopHeaderNavbar: React.FC<TopHeaderNavbarProps> = ({
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     <span>+ Register New Citizen Profile</span>
+                  </button>
+                </div>
+
+                {/* Logout */}
+                <div className="pt-1">
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      onLogout();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer text-left"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign Out</span>
                   </button>
                 </div>
               </div>
